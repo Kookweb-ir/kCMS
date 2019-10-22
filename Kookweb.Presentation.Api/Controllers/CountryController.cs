@@ -9,7 +9,7 @@ namespace Kookweb.Presentation.Api.Controllers
     public class CountryController : ApiController
     {
         private readonly ICountryService _countryService;
-
+        
         public CountryController(ICountryService countryService)
         {
             _countryService = countryService;

@@ -9,6 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Kookweb.Presentation.Api.Model.Auth;
+using Kookweb.Presentation.Api.Interfaces.Auth;
+using Kookweb.Presentation.Api.Services.Auth;
 
 namespace Kookweb.Presentation.Api
 {
@@ -25,6 +31,8 @@ namespace Kookweb.Presentation.Api
         {
             Kookweb.Core.Register.ConfigureBaseServices(services, Configuration);
             Kookweb.Core.Register.ConfigureEFServices(services, Configuration);
+
+            ConfigureAuthJWT(services, Configuration);
             services.AddControllers();
         }
 
@@ -37,12 +45,43 @@ namespace Kookweb.Presentation.Api
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            app.UseAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+        }
+
+
+        public void ConfigureAuthJWT(IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<TokenManagement>(Configuration.GetSection("Auth:JWT"));
+
+            var token = configuration.GetSection("Auth:JWT").Get<TokenManagement>();
+            var secret = Encoding.ASCII.GetBytes(token.Secret);
+
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(token.Secret)),
+                    ValidIssuer = token.Issuer,
+                    ValidAudience = token.Audience,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+            services.AddScoped<IAuthenticateService, TokenAuthenticationService>();
+            services.AddScoped<IUserManagementService, UserManagementService>();
         }
     }
 }
