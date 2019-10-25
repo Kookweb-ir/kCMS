@@ -6,6 +6,8 @@ using Kookweb.Presentation.Api.Model.Country;
 using Microsoft.AspNetCore.Authorization;
 using Kookweb.Presentation.Api.Model.Auth.Query;
 using Kookweb.Presentation.Api.Interfaces.Auth;
+using Kookweb.Presentation.Api.Model.Auth;
+using System;
 
 namespace Kookweb.Presentation.Api.Controllers
 {
@@ -20,21 +22,30 @@ namespace Kookweb.Presentation.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost, Route("request")]
-        public IActionResult RequestToken([FromBody] TokenRequest request)
+        public IActionResult RequestToken(TokenRequest request)
         {
+            TokenOutput output = new TokenOutput();
 
             if (!ModelState.IsValid)
             {
+                output.status = false;
+                output.ValidationErrors = ModelState.FetchErrors();
                 return BadRequest(ModelState);
             }
 
-            string token;
-            if (_authService.IsAuthenticated(request, out token))
+            string token = _authService.IsAuthenticated(request);
+            if (!string.IsNullOrEmpty(token))
             {
-                return Ok(token);
+                output.status = true;
+                output.result = token;
+            }
+            else
+            {
+                output.result = "invalid username and/or password";
+                output.status = false;
             }
 
-            return BadRequest("Invalid Request");
+            return Ok(output);
         }
     }
 }

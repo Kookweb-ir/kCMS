@@ -4,6 +4,6 @@ namespace Kookweb.Presentation.Api.Interfaces.Auth
 {
     public interface IAuthenticateService
     {
-        bool IsAuthenticated(TokenRequest request, out string token);
+        string IsAuthenticated(TokenRequest request);
     }
 }

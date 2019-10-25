@@ -20,11 +20,11 @@ namespace Kookweb.Presentation.Api.Services.Auth
             _userManagementService = service;
             _tokenManagement = tokenManagement.Value;
         }
-        public bool IsAuthenticated(TokenRequest request, out string token)
+        public string IsAuthenticated(TokenRequest request)
         {
 
-            token = string.Empty;
-            if (!_userManagementService.IsValidUser(request.Username, request.Password)) return false;
+            string token = string.Empty;
+            if (!_userManagementService.IsValidUser(request.Username, request.Password)) return string.Empty;
 
             var claim = new[]
             {
@@ -41,7 +41,7 @@ namespace Kookweb.Presentation.Api.Services.Auth
                 signingCredentials: credentials
             );
             token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-            return true;
+            return token;
 
         }
     }

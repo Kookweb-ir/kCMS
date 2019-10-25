@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Kookweb.Presentation.Api.Model.Api
 {
     public class ApiOutput<T> where T : class
@@ -19,5 +21,6 @@ namespace Kookweb.Presentation.Api.Model.Api
         public bool status { get; set; }
         public string message { get; set; }
         public T result { get; set; }
+        public IEnumerable<string> ValidationErrors { get; set; }
     }
 }
